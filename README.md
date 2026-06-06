@@ -2,7 +2,7 @@
 
 Model-based RL trains agents inside a learned simulator (a "dream"), and generative-market research works hard to make such simulators *realistic* — reproducing the stylized facts of returns (fat tails, volatility clustering, leverage). This work asks the unexamined question at the intersection of those two literatures: **does a market simulator's stylized-fact fidelity actually predict how well an agent trained inside it transfers to real data?** Using a leakage-controlled testbed (known-SDE Oracle markets, a dense capacity-matched *fidelity dial*, a no-lookahead trading environment, and a Transformer–MDN world model), we find that **stylized-fact fidelity is *decoupled* from dream-to-real transfer** — and that what actually transfers is *reward-relevant* (directional) structure, which stylized facts do not capture.
 
-📄 **Paper:** [paper/paper.pdf](paper/paper.pdf) · 🌐 **Project page:** _(added after the website deploys)_ · 💻 reproducible on [Modal](https://modal.com)
+📄 **Paper:** [paper/paper.pdf](paper/paper.pdf) · 🌐 **Project page:** https://omunaman.github.io/dream-to-real-trading/ · 💻 reproducible on [Modal](https://modal.com)
 
 ## Summary
 - **Problem.** Generative-market models optimize stylized-fact fidelity; RL-trading is model-free. Nobody has tested whether fidelity predicts the *transfer* of an agent trained inside such a simulator.
