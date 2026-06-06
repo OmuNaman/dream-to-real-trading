@@ -1,0 +1,71 @@
+{
+  "exp_id": "exp08",
+  "batch": [
+    {
+      "exp_id": "exp08_gjr_garch_s0",
+      "task": "learned_transfer",
+      "gen": "gjr_garch",
+      "kind": "transformer_mdn",
+      "seed": 0,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    },
+    {
+      "exp_id": "exp08_gjr_garch_s1",
+      "task": "learned_transfer",
+      "gen": "gjr_garch",
+      "kind": "transformer_mdn",
+      "seed": 1,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    },
+    {
+      "exp_id": "exp08_gjr_garch_s2",
+      "task": "learned_transfer",
+      "gen": "gjr_garch",
+      "kind": "transformer_mdn",
+      "seed": 2,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    },
+    {
+      "exp_id": "exp08_regime_switch_s0",
+      "task": "learned_transfer",
+      "gen": "regime_switch",
+      "kind": "transformer_mdn",
+      "seed": 0,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    },
+    {
+      "exp_id": "exp08_regime_switch_s1",
+      "task": "learned_transfer",
+      "gen": "regime_switch",
+      "kind": "transformer_mdn",
+      "seed": 1,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    },
+    {
+      "exp_id": "exp08_regime_switch_s2",
+      "task": "learned_transfer",
+      "gen": "regime_switch",
+      "kind": "transformer_mdn",
+      "seed": 2,
+      "L": 60,
+      "cost_bps": 5.0,
+      "ppo_steps": 150000,
+      "a1": true
+    }
+  ]
+}
