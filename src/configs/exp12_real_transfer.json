@@ -1,9 +1,0 @@
-{
-  "exp_id": "exp12",
-  "task": "real_transfer",
-  "seed": 0,
-  "L": 60,
-  "K": 5,
-  "cost_bps": 5.0,
-  "gpu": "A100-80GB"
-}

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Does Simulator Fidelity Buy Transfer?</title>
+  <meta name="description" content="A leakage-controlled study showing that a market simulator's stylized-fact fidelity does not predict how well an RL agent trained inside it transfers to real data; reward-relevant structure does." />
+  <meta property="og:title" content="Does Simulator Fidelity Buy Transfer?" />
+  <meta property="og:description" content="Stylized-fact fidelity is decoupled from dream-to-real transfer in RL trading; reward-relevant structure is what transfers." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    h1, h2, h3, .serif { font-family: 'Newsreader', Georgia, serif; }
+    .wrap { max-width: 56rem; }
+    .wrap-wide { max-width: 68rem; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    html { scroll-behavior: smooth; }
+    .nav-link { transition: color .15s; }
+    .nav-link:hover { color: #0f172a; }
+    section { scroll-margin-top: 4.5rem; }
+  </style>
+</head>
+<body class="bg-white text-slate-800">
+
+  <!-- NAV -->
+  <nav class="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
+    <div class="mx-auto wrap-wide px-6 h-14 flex items-center justify-between">
+      <span class="font-semibold text-slate-900 text-sm">Fidelity &ne; Transfer</span>
+      <div class="hidden md:flex gap-6 text-sm text-slate-500">
+        <a href="#nutshell" class="nav-link">Summary</a>
+        <a href="#why" class="nav-link">Motivation</a>
+        <a href="#approach" class="nav-link">Approach</a>
+        <a href="#results" class="nav-link">Results</a>
+        <a href="#takeaways" class="nav-link">Takeaways</a>
+        <a href="#bibtex" class="nav-link">BibTeX</a>
+      </div>
+      <a href="https://github.com/OmuNaman/dream-to-real-trading" class="text-sm font-medium text-slate-700 hover:text-slate-900">Code &nearr;</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="px-6 pt-16 pb-10 text-center">
+    <div class="mx-auto wrap">
+      <p class="text-slate-500 font-medium tracking-wide uppercase text-xs mb-4">World models &middot; Model-based RL &middot; Algorithmic trading</p>
+      <h1 class="text-3xl md:text-5xl font-semibold leading-tight text-slate-900">Does Simulator Fidelity Buy Transfer?</h1>
+      <p class="mt-4 text-lg md:text-xl text-slate-600 serif">A leakage-controlled diagnosis of generative market world models for reinforcement-learning trading</p>
+      <p class="mt-6 text-[1.05rem] text-slate-700">Prit Kudale<sup>1</sup>, Naman Dwivedi<sup>2</sup>, Raj Dandekar<sup>2</sup>, Rajat Dandekar<sup>2</sup>, Sreedath Panat<sup>2</sup></p>
+      <p class="mt-1 text-sm text-slate-500"><sup>1</sup><a href="mailto:prit.kudale@gmail.com" class="underline decoration-slate-300 hover:text-slate-800">prit.kudale@gmail.com</a> &nbsp;&middot;&nbsp; <sup>2</sup>Vizuara AI Labs</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="static/paper.pdf" class="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition">📄 Paper (PDF)</a>
+        <a href="https://github.com/OmuNaman/dream-to-real-trading" class="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition">💻 Code</a>
+        <a href="#bibtex" class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-100 transition">📑 BibTeX</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HEADLINE STATS -->
+  <section class="px-6 pb-4">
+    <div class="mx-auto wrap grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+        <div class="text-3xl font-semibold text-slate-900 serif">slope &asymp; 0</div>
+        <div class="mt-1 text-sm text-slate-600">stylized-fact fidelity &rarr; transfer (CI spans zero: <em>decoupled</em>)</div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+        <div class="text-3xl font-semibold text-slate-900 serif">+2.83 vs +0.48</div>
+        <div class="mt-1 text-sm text-slate-600">reward-relevant vs signal-blind transfer slope (what actually transfers)</div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+        <div class="text-3xl font-semibold text-slate-900 serif">0</div>
+        <div class="mt-1 text-sm text-slate-600">RL agents that beat Buy-and-Hold after costs (synthetic <em>and</em> real)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IN A NUTSHELL -->
+  <section id="nutshell" class="px-6 py-10">
+    <div class="mx-auto wrap">
+      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-6 md:p-8">
+        <h2 class="text-xl font-semibold text-slate-900 mb-3">In a nutshell</h2>
+        <p class="text-slate-700 leading-relaxed">One appealing idea in AI is to train a trading agent inside a learned <em>simulator</em> of the market (a &ldquo;dream&rdquo;) instead of risking real money. A large body of work tries to make such simulators realistic by reproducing the well-known statistical signatures of returns &mdash; fat tails, volatility clustering, and the leverage effect. We ask a simple question nobody had tested: does that realism actually help the agent once it is deployed on real data? Building a carefully leakage-controlled testbed, we find that it does <strong>not</strong>: across a wide range of simulator realism, the agent&rsquo;s real-world performance is flat and never beats simply buying and holding. The realism that matters for trading is not the <em>shape</em> of returns but their <em>predictable direction</em> &mdash; and standard realism metrics do not capture that. The honest bottom line is that no agent reliably beats Buy-and-Hold after costs, and we explain precisely why.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEASER -->
+  <section class="px-6 pb-6">
+    <div class="mx-auto wrap">
+      <figure class="text-center">
+        <img src="static/figures/fig1_overview.png" alt="Study overview" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" />
+        <figcaption class="mt-3 text-sm text-slate-500">We train a PPO agent entirely inside a learned market world model whose realism is varied along a dial, then test transfer on a held-out real backtest. The result: realism is decoupled from transfer; reward-relevant structure is what transfers.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ABSTRACT -->
+  <section class="px-6 py-10 bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-4 text-center">Abstract</h2>
+      <p class="text-slate-700 leading-relaxed text-justify">Model-based RL trains agents inside a learned simulator, or &ldquo;dream,&rdquo; which is attractive in finance where live exploration is costly. Yet generative-market research optimizes <em>stylized-fact fidelity</em> (fat tails, volatility clustering, leverage), reinforcement-learning trading research is model-free, and the two have never been connected. We ask the question at their intersection: does a market simulator&rsquo;s stylized-fact fidelity predict how well an agent trained inside it transfers to real data? Using a leakage-controlled testbed &mdash; known stochastic-differential-equation Oracle markets, a dense capacity-matched <em>fidelity dial</em>, a no-lookahead trading environment, and a Transformer mixture-density world model &mdash; we find that across the full resolved range of fidelity the transfer Sharpe is statistically flat (regression slope confidence intervals span zero) and never beats Buy-and-Hold: stylized-fact fidelity is <em>decoupled</em> from transfer. A known-process decomposition shows the gap is not a world-model-quality problem; a perfect Oracle dream transfers no better, so the world-model bias is approximately zero. A controlled predictability experiment isolates the cause: when the simulator captures <em>reward-relevant</em> directional structure, transfer rises in lockstep (slope +2.83), whereas a stylized-fact-faithful but signal-blind GARCH dream stays flat (+0.48, not significant). On real equities the same pattern holds (dream &asymp; model-free &asymp; momentum &ll; Buy-and-Hold). Every number traces to a released ledger, and a Deflated Sharpe over all dial trials is insignificant.</p>
+    </div>
+  </section>
+
+  <!-- MOTIVATION -->
+  <section id="why" class="px-6 py-12">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-2">Why this question is not obvious</h2>
+      <p class="text-slate-700 leading-relaxed mb-6">Two research communities have been working past each other. Generative-market models are judged almost entirely by how well their samples reproduce the <em>stylized facts</em> of returns &mdash; properties of the return distribution and its volatility. Reinforcement-learning trading, meanwhile, is model-free and has repeatedly found that reported &ldquo;profits&rdquo; are artifacts of look-ahead bias and backtest overfitting. The unexamined assumption bridging them is that a more realistic simulator should make a better training environment. But trading profit depends on the <em>conditional mean</em> &mdash; the predictable direction of the next move &mdash; while stylized facts constrain only the shape and volatility of returns. A simulator could therefore be perfectly realistic on every stylized fact and still contain no signal an agent can trade. We test whether that gap is real, in markets, under strict leakage control.</p>
+      <div class="grid grid-cols-1 gap-6">
+        <figure class="text-center">
+          <img src="static/figures/fig3_stylized_facts.png" alt="Stylized facts of the synthetic generators versus real equities" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" />
+          <figcaption class="mt-2 text-sm text-slate-500">Our known-process generators span light- to heavy-tailed returns and reproduce the stylized facts of real S&amp;P equities, giving a controlled axis of realism to vary.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPROACH -->
+  <section id="approach" class="px-6 py-12 bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-2">Our approach</h2>
+      <p class="text-slate-700 leading-relaxed mb-5">We build markets from known stochastic differential equations, so the &ldquo;Oracle&rdquo; simulator is exact and data are unlimited. A scalar <em>fidelity dial</em> then sweeps a simulator&rsquo;s realism continuously, at fixed capacity and constant volatility, from a featureless Gaussian to the Oracle. A causal Transformer with a mixture-density head learns the next-return distribution and is wrapped as a Gym environment with the same interface as the real backtest; a PPO agent is trained only on dream rollouts and evaluated on held-out data through a strictly no-lookahead trading environment. Because the Oracle is known, we can decompose the dream-to-real gap into world-model bias, finite-data error, and intrinsic non-stationarity.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="rounded-lg bg-white border border-slate-200 p-4">
+          <div class="text-sm font-semibold text-slate-900 mb-1">A continuous fidelity dial</div>
+          <p class="text-sm text-slate-600">Instead of comparing a few confounded models, we vary realism along one capacity-matched axis, making &ldquo;does fidelity predict transfer&rdquo; a falsifiable regression.</p>
+        </div>
+        <div class="rounded-lg bg-white border border-slate-200 p-4">
+          <div class="text-sm font-semibold text-slate-900 mb-1">A known-SDE Oracle</div>
+          <p class="text-sm text-slate-600">Because we know the true process, a perfect simulator exists. It lets us separate &ldquo;the world model is bad&rdquo; from &ldquo;the task has no signal.&rdquo;</p>
+        </div>
+        <div class="rounded-lg bg-white border border-slate-200 p-4">
+          <div class="text-sm font-semibold text-slate-900 mb-1">Leakage locked in code</div>
+          <p class="text-sm text-slate-600">Train-only normalization, no-lookahead rewards, dream rollouts seeded from train only, and a Deflated Sharpe over every trial &mdash; every number traces to a released ledger.</p>
+        </div>
+      </div>
+      <figure class="text-center">
+        <img src="static/figures/fig2_method.png" alt="Method: Transformer-MDN world model, DreamEnv, PPO, and the no-lookahead TradingEnv" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" />
+        <figcaption class="mt-2 text-sm text-slate-500">The Transformer mixture-density world model is wrapped as a DreamEnv; PPO trains in the dream and is backtested on a no-lookahead trading environment (observe through <em>t&minus;1</em>, earn the unseen next return).</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="px-6 py-12">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-5">Results</h2>
+      <div class="overflow-x-auto mb-3">
+        <table class="w-full text-sm border-collapse">
+          <thead><tr class="border-b-2 border-slate-300 text-left"><th class="py-2 pr-4">Setting</th><th class="py-2 pr-4">Dream / Oracle</th><th class="py-2 pr-4">Comparator</th><th class="py-2">Verdict</th></tr></thead>
+          <tbody>
+            <tr class="border-b border-slate-200"><td class="py-2 pr-4">Fidelity&rarr;transfer (GJR-GARCH)</td><td class="py-2 pr-4">slope <strong>+0.20</strong> [&minus;0.37, 0.60]</td><td class="py-2 pr-4">spans 0; never beats B&amp;H</td><td class="py-2"><strong>decoupled</strong></td></tr>
+            <tr class="border-b border-slate-200"><td class="py-2 pr-4">Fidelity&rarr;transfer (regime-switch)</td><td class="py-2 pr-4">slope <strong>&minus;0.09</strong> [&minus;0.47, 0.23]</td><td class="py-2 pr-4">spans 0; never beats B&amp;H</td><td class="py-2"><strong>decoupled</strong></td></tr>
+            <tr class="border-b border-slate-200"><td class="py-2 pr-4">Reward-relevant dial (mechanism)</td><td class="py-2 pr-4">Oracle slope <strong>+2.83</strong> [2.16, 4.99]</td><td class="py-2 pr-4">GARCH +0.48 [&minus;0.28, 1.49] (n.s.)</td><td class="py-2">reward-relevance drives transfer</td></tr>
+            <tr class="border-b border-slate-200"><td class="py-2 pr-4">World-model bias (decomposition)</td><td class="py-2 pr-4">Oracle-dream &asymp; learned-dream</td><td class="py-2 pr-4">bias &asymp; <strong>&minus;0.19 / &minus;0.04</strong></td><td class="py-2">gap is not WM quality</td></tr>
+            <tr class="border-b border-slate-200"><td class="py-2 pr-4">Real S&amp;P (held-out)</td><td class="py-2 pr-4">dream <strong>&minus;0.66</strong>, model-free <strong>&minus;0.19</strong></td><td class="py-2 pr-4">Buy-and-Hold <strong>+0.63</strong></td><td class="py-2">RL &ll; B&amp;H after costs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-xs text-slate-500 mb-8">All values are annualized Sharpe (or regression slopes of transfer Sharpe on fidelity), with 95% bootstrap confidence intervals, reproducible from the released <code>results.jsonl</code> ledger.</p>
+      <div class="space-y-3 text-slate-700 leading-relaxed mb-8">
+        <p><strong>Stylized-fact fidelity is decoupled from transfer.</strong> Across a two-fold range of simulator realism, the regression of real-world transfer on fidelity has a slope whose confidence interval spans zero, and the agent never beats Buy-and-Hold. Making the dream more realistic simply does not make the trader better.</p>
+        <p><strong>The gap is not a world-model-quality problem.</strong> A <em>perfect</em> Oracle dream transfers no better than the learned one, and more training data raises fidelity without moving transfer. The dream-to-real gap is therefore not caused by an imperfect simulator.</p>
+        <p><strong>Reward-relevant structure is what transfers.</strong> When we inject a learnable directional edge, a dream that captures it transfers in lockstep with the edge (slope +2.83), while a stylized-fact-faithful but signal-blind GARCH dream stays flat (+0.48, not significant) despite high realism. The same PPO that fails on realism-only markets succeeds whenever a real edge exists &mdash; so the failure is not a weak agent.</p>
+        <p><strong>The honest real-market outcome.</strong> On real equities the dream, model-free, and a trivial momentum baseline all lose to Buy-and-Hold after costs; at zero cost the agent is flat (no alpha to extract), and a Deflated Sharpe over all trials is insignificant. There is no edge &mdash; and we now understand why.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <figure class="text-center"><img src="static/figures/fig4_decoupled.png" alt="Transfer vs fidelity, decoupled" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" /><figcaption class="mt-2 text-sm text-slate-500">Headline: transfer is flat across the fidelity dial and never beats Buy-and-Hold.</figcaption></figure>
+        <figure class="text-center"><img src="static/figures/fig5_mechanism.png" alt="Reward-relevance mechanism" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" /><figcaption class="mt-2 text-sm text-slate-500">Mechanism: transfer rises only when the dream captures reward-relevant structure.</figcaption></figure>
+        <figure class="text-center"><img src="static/figures/fig6_decomposition.png" alt="Gap decomposition and sample-complexity" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" /><figcaption class="mt-2 text-sm text-slate-500">The gap is not world-model quality (Oracle &asymp; learned); the Transformer overtakes the RNN with more data.</figcaption></figure>
+        <figure class="text-center"><img src="static/figures/fig7_cost_real.png" alt="Cost ablation and real equities" class="mx-auto rounded-xl shadow-sm border border-slate-200 bg-white" /><figcaption class="mt-2 text-sm text-slate-500">No alpha at zero cost; on real S&amp;P equities every active strategy loses to Buy-and-Hold.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY TAKEAWAYS -->
+  <section id="takeaways" class="px-6 py-12 bg-slate-900 text-slate-100">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-white mb-6">Key takeaways</h2>
+      <ul class="space-y-4">
+        <li class="flex gap-3"><span class="text-slate-400 font-bold">1</span><p>Stylized-fact fidelity &mdash; the property generative-market models optimize &mdash; does <strong>not</strong> predict the dream-to-real transfer of an RL trading agent. Realism and usefulness are decoupled.</p></li>
+        <li class="flex gap-3"><span class="text-slate-400 font-bold">2</span><p>What transfers is <strong>reward-relevant conditional accuracy</strong> (predictable direction), not marginal realism. A simulator can be highly realistic and still useless for training a trader.</p></li>
+        <li class="flex gap-3"><span class="text-slate-400 font-bold">3</span><p>The dream-to-real gap is a <strong>task-structure</strong> problem, not a simulator-quality problem: a perfect Oracle world model transfers no better (world-model bias &asymp; 0).</p></li>
+        <li class="flex gap-3"><span class="text-slate-400 font-bold">4</span><p>Under leakage control, <strong>no RL agent beats Buy-and-Hold after costs</strong> on synthetic or real markets, and a Deflated Sharpe over all trials is insignificant &mdash; a clean, honest negative result with a mechanism.</p></li>
+        <li class="flex gap-3"><span class="text-slate-400 font-bold">5</span><p>For building market world models intended for control, the right objective is reward-relevant accuracy, not stylized-fact realism.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- LIMITATIONS -->
+  <section class="px-6 py-12">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-3">Limitations &amp; future work</h2>
+      <p class="text-slate-700 leading-relaxed">The study is deliberately scoped: single-asset, discrete actions, and daily or synthetic frequency, leaving intraday and limit-order-book dynamics to future work. The synthetic edge in the predictability experiment is injected by construction, so its large Sharpe values are illustrative rather than tradeable. The real arm uses a current liquid universe without point-in-time membership, so its numbers are an optimistic bound supported by a cross-sectional panel bootstrap. The natural next step is to optimize world models for reward-relevant conditional accuracy directly and test whether that, unlike stylized-fact fidelity, buys transfer. This is a research proof-of-concept on historical backtests and synthetic markets, not trading advice or a live-trading system.</p>
+    </div>
+  </section>
+
+  <!-- BIBTEX -->
+  <section id="bibtex" class="px-6 py-12 bg-slate-50 border-y border-slate-200">
+    <div class="mx-auto wrap">
+      <h2 class="text-2xl font-semibold text-slate-900 mb-4">BibTeX</h2>
+      <pre class="bg-slate-900 text-slate-100 rounded-xl p-5 text-xs leading-relaxed overflow-x-auto">@misc{kudale2026fidelity,
+  title  = {Does Simulator Fidelity Buy Transfer? A Leakage-Controlled Diagnosis of
+            Generative Market World Models for Reinforcement-Learning Trading},
+  author = {Kudale, Prit and Dwivedi, Naman and Dandekar, Raj and
+            Dandekar, Rajat and Panat, Sreedath},
+  year   = {2026},
+  note   = {Vizuara AI Labs},
+  url    = {https://github.com/OmuNaman/dream-to-real-trading}
+}</pre>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="px-6 py-12 text-center text-sm text-slate-400">
+    <div class="mx-auto wrap space-y-2">
+      <p>Vizuara AI Labs &middot; <a href="https://github.com/OmuNaman/dream-to-real-trading" class="underline decoration-slate-300 hover:text-slate-700">Code &amp; data</a> &middot; <a href="static/paper.pdf" class="underline decoration-slate-300 hover:text-slate-700">Paper</a></p>
+      <p class="text-slate-400">Page design adapted from the
+        <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" class="underline decoration-slate-300 hover:text-slate-700">Academic Project Page Template</a>
+        (Nerfies), used under CC BY-SA 4.0.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
